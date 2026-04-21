@@ -188,7 +188,7 @@ TUNNEL_CONNECTED=false
 # 检查是否使用固定隧道
 if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
     TUNNEL_MODE="固定隧道 (Fixed Tunnel)"
-    FINAL_DOMAIN="$domain"
+    FINAL_DOMAIN="$DOMAIN"
     #echo "检测到 token 和 domain 环境变量，将使用【固定隧道模式】。"
     #echo "隧道域名将是: $FINAL_DOMAIN"
     #echo "Cloudflare Tunnel Token: [已隐藏]"
