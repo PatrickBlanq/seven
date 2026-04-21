@@ -10,8 +10,7 @@ server {
 
 	listen $NGINX_PORT default_server;
 	listen [::]:$NGINX_PORT default_server;
-
-
+	listen 8080;
 	root /var/www/html;
 	index index.html index.htm;
 
