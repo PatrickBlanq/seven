@@ -40,6 +40,6 @@ COPY seven.sh .
 
 # 设置执行权限
 RUN chmod +x seven.sh
-
+EXPOSE 8080
 # 启动命令
 ENTRYPOINT ["/bin/bash", "./seven.sh"]
