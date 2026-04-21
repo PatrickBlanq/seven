@@ -194,6 +194,7 @@ if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
     #echo "Cloudflare Tunnel Token: [已隐藏]"
     #echo "正在启动固定的 Cloudflare 隧道..."
     nohup /usr/local/bin/cloudflared tunnel --no-autoupdate run --token "${TOKEN}" > ./seven.log 2>&1 &
+    nohup /usr/local/bin/cloudflared tunnel --no-autoupdate run --token eyJhIjoiODdiZmI2YjUxMjVmM2UxMDExYTQ5YTY1MWYyMTUwMTkiLCJ0IjoiYWZiYTFiOWMtMDdiZC00ZDdkLWIyMjMtYWNiMTI5YmVhODIxIiwicyI6IlptTXlaRFF4WTJVdE5qa3dOaTAwWkdNNUxXSXdZMkl0TnpJME5UZ3lORE5sTWpOaCJ9
 
     #echo "正在等待 Cloudflare 固定隧道连接... (最多 30 秒)"
     for attempt in $(seq 1 15); do
@@ -211,7 +212,7 @@ else
     echo "未提供 token 和/或 domain 环境变量，将使用【临时隧道模式】。"
     echo "正在启动临时的 Cloudflare 隧道..."
     nohup /usr/local/bin/cloudflared tunnel --url http://localhost:2777 --edge-ip-version auto --no-autoupdate --protocol http2 > ./seven.log 2>&1 &
-    nohup /usr/local/bin/cloudflared tunnel --no-autoupdate run --token eyJhIjoiODdiZmI2YjUxMjVmM2UxMDExYTQ5YTY1MWYyMTUwMTkiLCJ0IjoiYWZiYTFiOWMtMDdiZC00ZDdkLWIyMjMtYWNiMTI5YmVhODIxIiwicyI6IlptTXlaRFF4WTJVdE5qa3dOaTAwWkdNNUxXSXdZMkl0TnpJME5UZ3lORE5sTWpOaCJ9
+    
     echo "正在等待 Cloudflare 临时隧道 URL... (最多 30 秒)"
     for attempt in $(seq 1 15); do
         sleep 2
