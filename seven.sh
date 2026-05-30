@@ -234,7 +234,7 @@ EOF
 
     echo ">>> 启动 Cloudflare Tunnel（config.yml 模式）..."
 
-    nohup cloudflared --config /root/.cloudflared/config.yml tunnel run ${TUNNEL_ID} \
+    nohup /usr/local/bin/cloudflared --config /usr/local/bin/config.yml tunnel run ${TUNNEL_ID} \
         > ./seven.log 2>&1 &
 
     echo "等待隧道连接..."
