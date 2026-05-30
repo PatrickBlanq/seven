@@ -187,20 +187,35 @@ TUNNEL_CONNECTED=false
 
 # 检查是否使用固定隧道
 if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
+    TUNNEL_MODE="固定隧道 (Fixed Tunnel)"
+    FINAL_DOMAIN="$DOMAIN"
 
-	TUNNEL_MODE="固定隧道 (Fixed Tunnel)"
-	FINAL_DOMAIN="$DOMAIN"
+    echo "检测到 TOKEN + DOMAIN，使用 config.yml 隧道模式"
 
-	# 生成 tunnel.json（credentials-file）
-	echo "$TOKEN" > /usr/local/bin/tunnel.json
 
-	# 从 credentials JSON 中提取 TunnelID
-	TUNNEL_ID=$(echo "$TOKEN" | grep -o '"TunnelID":"[^"]*"' | cut -d'"' -f4)
+    echo ">>> 解码 Token..."
+    RAW=$(echo "$TOKEN" | base64 -d)
 
-# 生成 config.yml
-cat > /usr/local/bin/tunnel.yml <<EOF
-tunnel: $TUNNEL_ID
-credentials-file: /usr/local/bin/tunnel.json
+    ACCOUNT_TAG=$(echo "$RAW" | grep -o '"a":"[^"]*"' | cut -d'"' -f4)
+    TUNNEL_ID=$(echo "$RAW" | grep -o '"t":"[^"]*"' | cut -d'"' -f4)
+    TUNNEL_SECRET=$(echo "$RAW" | grep -o '"s":"[^"]*"' | cut -d'"' -f4)
+
+    echo ">>> TunnelID: $TUNNEL_ID"
+
+    # 生成 credentials-file
+    cat > /usr/local/bin/cloudflared/${TUNNEL_ID}.json <<EOF
+{
+  "AccountTag": "${ACCOUNT_TAG}",
+  "TunnelSecret": "${TUNNEL_SECRET}",
+  "TunnelID": "${TUNNEL_ID}",
+  "TunnelName": "converted-from-windows-token"
+}
+EOF
+
+    # 生成 config.yml
+    cat > /usr/local/bin/cloudflared/config.yml <<EOF
+tunnel: ${TUNNEL_ID}
+credentials-file: /usr/local/bin/cloudflared/${TUNNEL_ID}.json
 
 protocol: http2
 
@@ -210,28 +225,30 @@ dns:
     - 8.8.8.8
 
 ingress:
-  - hostname: $DOMAIN
+  - hostname: ${DOMAIN}
     service: http://localhost:2777
     originRequest:
       noTLSVerify: true
   - service: http_status:404
 EOF
 
-	# 启动 Cloudflare Tunnel（config.yml 模式）
-	nohup /usr/local/bin/cloudflared tunnel run $TUNNEL_ID \
-	  --config /etc/xray/tunnel.yml \
-	  > ./seven.log 2>&1 &
+    echo ">>> 启动 Cloudflare Tunnel（config.yml 模式）..."
 
-	# 等待隧道上线
-	for attempt in $(seq 1 15); do
-		sleep 2
-		if grep -q -E "Registered tunnel connection|Connection established" ./seven.log; then
-			TUNNEL_CONNECTED=true
-			break
-		fi
-		echo -n "."
-	done
-	echo ""
+    nohup cloudflared --config /root/.cloudflared/config.yml tunnel run ${TUNNEL_ID} \
+        > ./seven.log 2>&1 &
+
+    echo "等待隧道连接..."
+
+    for attempt in $(seq 1 15); do
+        sleep 2
+        if grep -q -E "Registered tunnel connection|Connection established" ./seven.log; then
+            TUNNEL_CONNECTED=true
+            break
+        fi
+        echo -n "."
+    done
+    echo ""
+
 
 else
     TUNNEL_MODE="临时隧道 (Temporary Tunnel)"
