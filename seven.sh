@@ -187,32 +187,51 @@ TUNNEL_CONNECTED=false
 
 # 检查是否使用固定隧道
 if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
-    TUNNEL_MODE="固定隧道 (Fixed Tunnel)"
-    FINAL_DOMAIN="$DOMAIN"
-    #echo "检测到 token 和 domain 环境变量，将使用【固定隧道模式】。"
-    #echo "隧道域名将是: $FINAL_DOMAIN"
-    #echo "Cloudflare Tunnel Token: [已隐藏]"
-    #echo "正在启动固定的 Cloudflare 隧道..."
-	
-	nohup /usr/local/bin/cloudflared tunnel \
-	  --edge-ip-version auto \
-	  --no-autoupdate \
-	  --protocol http2 \
-	  run --token "${TOKEN}" \
-	  > ./seven.log 2>&1 &
-		  
-    #nohup /usr/local/bin/cloudflared tunnel --no-autoupdate run --token eyJhIjoiODdiZmI2YjUxMjVmM2UxMDExYTQ5YTY1MWYyMTUwMTkiLCJ0IjoiYWZiYTFiOWMtMDdiZC00ZDdkLWIyMjMtYWNiMTI5YmVhODIxIiwicyI6IlptTXlaRFF4WTJVdE5qa3dOaTAwWkdNNUxXSXdZMkl0TnpJME5UZ3lORE5sTWpOaCJ9 > ./tunnel2.log 2>&1 &
 
-    #echo "正在等待 Cloudflare 固定隧道连接... (最多 30 秒)"
-    for attempt in $(seq 1 15); do
-        sleep 2
-        if grep -q -E "Registered tunnel connection|Connected to .*, an Argo Tunnel an edge" ./seven.log; then
-            TUNNEL_CONNECTED=true
-            break
-        fi
-        echo -n "." 
-    done
-    echo ""
+	TUNNEL_MODE="固定隧道 (Fixed Tunnel)"
+	FINAL_DOMAIN="$DOMAIN"
+
+	# 生成 tunnel.json（credentials-file）
+	echo "$TOKEN" > /etc/xray/tunnel.json
+
+	# 从 credentials JSON 中提取 TunnelID
+	TUNNEL_ID=$(echo "$TOKEN" | grep -o '"TunnelID":"[^"]*"' | cut -d'"' -f4)
+
+# 生成 config.yml
+cat > /etc/xray/tunnel.yml <<EOF
+tunnel: $TUNNEL_ID
+credentials-file: /etc/xray/tunnel.json
+
+protocol: http2
+
+dns:
+  nameservers:
+    - 1.1.1.1
+    - 8.8.8.8
+
+ingress:
+  - hostname: $DOMAIN
+    service: http://localhost:2777
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404
+EOF
+
+	# 启动 Cloudflare Tunnel（config.yml 模式）
+	nohup /usr/local/bin/cloudflared tunnel run $TUNNEL_ID \
+	  --config /etc/xray/tunnel.yml \
+	  > ./seven.log 2>&1 &
+
+	# 等待隧道上线
+	for attempt in $(seq 1 15); do
+		sleep 2
+		if grep -q -E "Registered tunnel connection|Connection established" ./seven.log; then
+			TUNNEL_CONNECTED=true
+			break
+		fi
+		echo -n "."
+	done
+	echo ""
 
 else
     TUNNEL_MODE="临时隧道 (Temporary Tunnel)"
