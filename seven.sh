@@ -195,9 +195,9 @@ if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
     #echo "正在启动固定的 Cloudflare 隧道..."
 	
 	nohup /usr/local/bin/cloudflared tunnel \
+	  --edge-ip-version auto \
 	  --no-autoupdate \
 	  --protocol http2 \
-	  --resolver-address 1.1.1.1 \
 	  run --token "${TOKEN}" \
 	  > ./seven.log 2>&1 &
 		  
