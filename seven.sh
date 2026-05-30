@@ -215,7 +215,7 @@ EOF
     # 生成 config.yml
     cat > /usr/local/bin/config.yml <<EOF
 tunnel: ${TUNNEL_ID}
-credentials-file: /usr/local/bin/cloudflared/${TUNNEL_ID}.json
+credentials-file: /usr/local/bin/${TUNNEL_ID}.json
 
 protocol: http2
 
