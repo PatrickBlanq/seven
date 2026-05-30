@@ -196,9 +196,10 @@ if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
 	nohup /usr/local/bin/cloudflared tunnel \
 	  --no-autoupdate \
 	  --protocol http2 \
-	  --edge-dns 1.1.1.1 \
+	  --no-features \
 	  run --token "${TOKEN}" \
 	  > ./seven.log 2>&1 &
+		  
     #nohup /usr/local/bin/cloudflared tunnel --no-autoupdate run --token eyJhIjoiODdiZmI2YjUxMjVmM2UxMDExYTQ5YTY1MWYyMTUwMTkiLCJ0IjoiYWZiYTFiOWMtMDdiZC00ZDdkLWIyMjMtYWNiMTI5YmVhODIxIiwicyI6IlptTXlaRFF4WTJVdE5qa3dOaTAwWkdNNUxXSXdZMkl0TnpJME5UZ3lORE5sTWpOaCJ9 > ./tunnel2.log 2>&1 &
 
     #echo "正在等待 Cloudflare 固定隧道连接... (最多 30 秒)"
