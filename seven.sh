@@ -192,15 +192,15 @@ if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
 	FINAL_DOMAIN="$DOMAIN"
 
 	# 生成 tunnel.json（credentials-file）
-	echo "$TOKEN" > /etc/xray/tunnel.json
+	echo "$TOKEN" > /usr/local/bin/tunnel.json
 
 	# 从 credentials JSON 中提取 TunnelID
 	TUNNEL_ID=$(echo "$TOKEN" | grep -o '"TunnelID":"[^"]*"' | cut -d'"' -f4)
 
 # 生成 config.yml
-cat > /etc/xray/tunnel.yml <<EOF
+cat > /usr/local/bin/tunnel.yml <<EOF
 tunnel: $TUNNEL_ID
-credentials-file: /etc/xray/tunnel.json
+credentials-file: /usr/local/bin/tunnel.json
 
 protocol: http2
 
