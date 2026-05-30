@@ -28,9 +28,10 @@ RUN wget -O /tmp/sing-box.tar.gz "https://github.com/SagerNet/sing-box/releases/
     rm -rf /tmp/sing-box*
 
 # 下载并安装 cloudflared
-RUN wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
-    -O /usr/local/bin/cloudflared && \
-    chmod +x /usr/local/bin/cloudflared
+RUN wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.tgz -O /tmp/cloudflared.tgz && \
+    tar -xzf /tmp/cloudflared.tgz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/cloudflared && \
+    rm -f /tmp/cloudflared.tgz
 
 # 创建应用目录
 WORKDIR /app
@@ -40,6 +41,6 @@ COPY seven.sh .
 
 # 设置执行权限
 RUN chmod +x seven.sh
-EXPOSE 8080
+
 # 启动命令
 ENTRYPOINT ["/bin/bash", "./seven.sh"]
