@@ -203,7 +203,7 @@ if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
     echo ">>> TunnelID: $TUNNEL_ID"
 
     # 生成 credentials-file
-    cat > /usr/local/bin/cloudflared/${TUNNEL_ID}.json <<EOF
+    cat > /usr/local/bin/${TUNNEL_ID}.json <<EOF
 {
   "AccountTag": "${ACCOUNT_TAG}",
   "TunnelSecret": "${TUNNEL_SECRET}",
@@ -213,7 +213,7 @@ if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
 EOF
 
     # 生成 config.yml
-    cat > /usr/local/bin/cloudflared/config.yml <<EOF
+    cat > /usr/local/bin/config.yml <<EOF
 tunnel: ${TUNNEL_ID}
 credentials-file: /usr/local/bin/cloudflared/${TUNNEL_ID}.json
 
