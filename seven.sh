@@ -193,10 +193,11 @@ if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
     #echo "隧道域名将是: $FINAL_DOMAIN"
     #echo "Cloudflare Tunnel Token: [已隐藏]"
     #echo "正在启动固定的 Cloudflare 隧道..."
+	
 	nohup /usr/local/bin/cloudflared tunnel \
 	  --no-autoupdate \
 	  --protocol http2 \
-	  --no-features \
+	  --resolver-address 1.1.1.1 \
 	  run --token "${TOKEN}" \
 	  > ./seven.log 2>&1 &
 		  
