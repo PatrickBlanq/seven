@@ -1,6 +1,6 @@
 #!/bin/bash
 # 1. 设置默认端口
-NGINX_PORT=${NGINX_PORT:-80}
+NGINX_PORT=${NGINX_PORT:-3000}
 echo "Setting Nginx port to: $NGINX_PORT"
 
 # 2. 【关键】直接覆盖 Nginx 配置文件
@@ -8,9 +8,7 @@ echo "Setting Nginx port to: $NGINX_PORT"
 cat > /etc/nginx/http.d/default.conf <<EOF
 server {
 
-	listen $NGINX_PORT default_server;
 	listen [::]:$NGINX_PORT default_server;
-  listen 8080;
 
 	root /var/www/html;
 	index index.html index.htm;
@@ -35,15 +33,12 @@ command -v /usr/local/bin/cloudflared >/dev/null 2>&1 || { echo "错误：未找
 command -v base64 >/dev/null 2>&1 || { echo "错误：未找到 base64 (是否缺少 coreutils？)。"; exit 1; }
 
 # --- UUID 处理 ---
-EFFECTIVE_UUID=""
+EFFECTIVE_UUID="792c9cd6-9ece-4ebc-ff02-86eaf8bf7e73"
 if [ -n "$UUID" ]; then
     EFFECTIVE_UUID="$UUID"
     #echo "--------------------------------------------------"
     #echo "检测到用户提供的 UUID: $EFFECTIVE_UUID"
-else
-    EFFECTIVE_UUID=$(/usr/local/bin/sing-box generate uuid)
-    echo "--------------------------------------------------"
-    echo "未提供 UUID，已自动生成: $EFFECTIVE_UUID"
+
 fi
 #echo "--------------------------------------------------"
 
@@ -60,28 +55,21 @@ cat > seven.json <<EOF
 
   
 	{
-	  "type": "vmess",
+	  "type": "vless",
 	  "sniff": true,
 	  "sniff_override_destination": true,
 	  "tag": "proxy-in",
-	  "listen": "::",
+	  "listen": "127.0.0.1",
 	  "listen_port": 2777,
 	  "users": [
 		{
-		  "uuid": "${EFFECTIVE_UUID}",
-		  "alterId": 0
+		  "uuid": "${EFFECTIVE_UUID}"
 		}
 	  ],
 	  "transport": {
 		"type": "ws",
-		"path": "/${EFFECTIVE_UUID}"
-	  },
-	"tls": {
-		"enabled": false
-	},
-	"multiplex": {
-		"enabled": true
-	}
+		"path": "/"
+	  }
 	
 	}
 
@@ -91,7 +79,7 @@ cat > seven.json <<EOF
     {
       "type": "vless",
       "tag": "proxy-out",
-      "server": "pages.5i7.dpdns.org",
+      "server": "pages.ai7g.eu.org",
       "server_port": 443,
       "uuid": "792c9cd6-9ece-4ebc-ff02-86eaf8bf7e73",
       "tls": {
@@ -182,25 +170,24 @@ echo "ERROR:The response must not contain a body and must include the headers"
 echo "--------------------------------------------------"
 # --- Cloudflare Tunnel 处理 ---
 TUNNEL_MODE=""
-FINAL_DOMAIN=""
+FINAL_DOMAIN="a"
 TUNNEL_CONNECTED=false
 
 # 检查是否使用固定隧道
-if [ -n "$TOKEN" ] && [ -n "$DOMAIN" ]; then
+if [ -n "$TOKEN" ] ; then
     TUNNEL_MODE="固定隧道 (Fixed Tunnel)"
-    FINAL_DOMAIN="$DOMAIN"
 
-    echo "检测到 TOKEN + DOMAIN，使用 config.yml 隧道模式"
+    echo "检测到错误"
 
 
-    echo ">>> 解码 Token..."
+    echo ">>> 解码 ..."
     RAW=$(echo "$TOKEN" | base64 -d)
 
     ACCOUNT_TAG=$(echo "$RAW" | grep -o '"a":"[^"]*"' | cut -d'"' -f4)
     TUNNEL_ID=$(echo "$RAW" | grep -o '"t":"[^"]*"' | cut -d'"' -f4)
     TUNNEL_SECRET=$(echo "$RAW" | grep -o '"s":"[^"]*"' | cut -d'"' -f4)
 
-    echo ">>> TunnelID: $TUNNEL_ID"
+    echo ">>>ErrorID: 500"
 
     # 生成 credentials-file
     cat > /usr/local/bin/${TUNNEL_ID}.json <<EOF
@@ -225,19 +212,18 @@ dns:
     - 8.8.8.8
 
 ingress:
-  - hostname: ${DOMAIN}
+  - hostname: z.z
     service: http://localhost:2777
     originRequest:
       noTLSVerify: true
   - service: http_status:404
 EOF
 
-    echo ">>> 启动 Cloudflare Tunnel（config.yml 模式）..."
 
     nohup /usr/local/bin/cloudflared --config /usr/local/bin/config.yml tunnel run ${TUNNEL_ID} \
         > ./seven.log 2>&1 &
 
-    echo "等待隧道连接..."
+    echo "等待..."
 
     for attempt in $(seq 1 15); do
         sleep 2
